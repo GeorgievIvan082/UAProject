@@ -8,27 +8,43 @@
   </div>
 
   <div class="card mb-4">
-    <div class="card-body">
-      <h4>Create Routine</h4>
+  <div class="card-body">
+    <div class="d-flex align-items-center justify-content-between">
+      <h2 class="mb-0">Create Routine</h2>
+      <button
+        type="button"
+        class="btn btn-outline-primary btn-sm"
+        id="toggleRoutineFormBtn"
+        onclick="toggleRoutineForm()"
+        aria-expanded="false"
+        aria-controls="createRoutineFormWrapper"
+        style="width: 38px; height: 38px; font-size: 22px; line-height: 1; padding: 0;"
+      >
+        +
+      </button>
+    </div>
+
+    <div id="createRoutineFormWrapper" style="display: none; margin-top: 20px;">
       <form method="POST" action="{{ url_for('views.create_routine') }}">
         <div class="mb-3">
-          <label class="form-label">Routine Name</label>
-          <input type="text" name="name" class="form-control" required>
+          <label for="name" class="form-label">Routine Name</label>
+          <input type="text" class="form-control" id="name" name="name" required>
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Description</label>
-          <textarea name="description" class="form-control" rows="3"></textarea>
+          <label for="description" class="form-label">Description</label>
+          <textarea class="form-control" id="description" name="description" rows="4"></textarea>
         </div>
 
         <div class="row">
           <div class="col-md-6 mb-3">
-            <label class="form-label">From date</label>
-            <input type="date" name="start_date" class="form-control">
+            <label for="start_date" class="form-label">From date</label>
+            <input type="date" class="form-control" id="start_date" name="start_date">
           </div>
+
           <div class="col-md-6 mb-3">
-            <label class="form-label">To date</label>
-            <input type="date" name="end_date" class="form-control">
+            <label for="end_date" class="form-label">To date</label>
+            <input type="date" class="form-control" id="end_date" name="end_date">
           </div>
         </div>
 
@@ -36,6 +52,26 @@
       </form>
     </div>
   </div>
+</div>
+
+<script>
+  function toggleRoutineForm() {
+    const formWrapper = document.getElementById("createRoutineFormWrapper");
+    const button = document.getElementById("toggleRoutineFormBtn");
+
+    const isHidden = formWrapper.style.display === "none" || formWrapper.style.display === "";
+
+    if (isHidden) {
+      formWrapper.style.display = "block";
+      button.textContent = "−";
+      button.setAttribute("aria-expanded", "true");
+    } else {
+      formWrapper.style.display = "none";
+      button.textContent = "+";
+      button.setAttribute("aria-expanded", "false");
+    }
+  }
+</script>
 
   <div class="card">
     <div class="card-body">

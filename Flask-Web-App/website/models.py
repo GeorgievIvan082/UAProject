@@ -2,6 +2,7 @@ from . import db
 from flask_login import UserMixin
 from sqlalchemy.sql import func
 
+
 class Routine(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), nullable=False)
@@ -19,6 +20,7 @@ class Routine(db.Model):
         order_by='RoutineTask.order_index'
     )
 
+
 class RoutineTask(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     order_index = db.Column(db.Integer, nullable=False)
@@ -26,7 +28,13 @@ class RoutineTask(db.Model):
     position = db.Column(db.Float, nullable=False)
     action = db.Column(db.String(50), nullable=False)
     duration = db.Column(db.Float, nullable=False, default=0)
+
+    is_recurring = db.Column(db.Boolean, nullable=False, default=False)
+    repeat_every = db.Column(db.Integer, nullable=True)
+    repeat_unit = db.Column(db.String(20), nullable=True)
+
     routine_id = db.Column(db.Integer, db.ForeignKey('routine.id'), nullable=False)
+
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)

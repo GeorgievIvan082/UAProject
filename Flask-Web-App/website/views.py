@@ -5,9 +5,11 @@ from . import db
 from datetime import datetime
 import json
 
+
 views = Blueprint('views', __name__)
 
-def validate_task_data(offset, position, action, duration):
+
+def validate_task_data(offset, position, action, duration, is_recurring=False, repeat_every=None):
     errors = []
 
     if offset is None:
@@ -22,13 +24,19 @@ def validate_task_data(offset, position, action, duration):
     if not action or len(action.strip()) == 0:
         errors.append('Action is required.')
 
+    if is_recurring:
+        if repeat_every is None or repeat_every < 1:
+            errors.append('Repeat every must be a whole number of at least 1 hour.')
+
     return errors
+
 
 @views.route('/')
 @login_required
 def home():
     routines = Routine.query.filter_by(user_id=current_user.id).order_by(Routine.created_at.desc()).all()
     return render_template('home.html', user=current_user, routines=routines)
+
 
 @views.route('/routine/new', methods=['POST'])
 @login_required
@@ -72,11 +80,13 @@ def create_routine():
     flash('Routine created.', category='success')
     return redirect(url_for('views.routine_detail', routine_id=routine.id))
 
+
 @views.route('/routine/<int:routine_id>', methods=['GET'])
 @login_required
 def routine_detail(routine_id):
     routine = Routine.query.filter_by(id=routine_id, user_id=current_user.id).first_or_404()
     return render_template('routine_detail.html', user=current_user, routine=routine)
+
 
 @views.route('/routine/<int:routine_id>/task/add', methods=['POST'])
 @login_required
@@ -92,8 +102,11 @@ def add_task(routine_id):
         return redirect(url_for('views.routine_detail', routine_id=routine.id))
 
     action = (request.form.get('action') or '').strip()
+    is_recurring = request.form.get('is_recurring') == 'on'
+    repeat_every = request.form.get('repeat_every', type=int) if is_recurring else None
+    repeat_unit = 'hour' if is_recurring else None
 
-    errors = validate_task_data(offset, position, action, duration)
+    errors = validate_task_data(offset, position, action, duration, is_recurring, repeat_every)
 
     if errors:
         for error in errors:
@@ -108,6 +121,9 @@ def add_task(routine_id):
         position=position,
         action=action,
         duration=duration,
+        is_recurring=is_recurring,
+        repeat_every=repeat_every,
+        repeat_unit=repeat_unit,
         routine_id=routine.id
     )
 
@@ -116,6 +132,7 @@ def add_task(routine_id):
 
     flash('Task added to routine.', category='success')
     return redirect(url_for('views.routine_detail', routine_id=routine.id))
+
 
 @views.route('/delete-task', methods=['POST'])
 @login_required
@@ -138,6 +155,7 @@ def delete_task():
 
     return jsonify({"success": False}), 403
 
+
 @views.route('/routine/<int:routine_id>/reorder-tasks', methods=['POST'])
 @login_required
 def reorder_tasks(routine_id):
@@ -158,6 +176,7 @@ def reorder_tasks(routine_id):
     db.session.commit()
     return jsonify({"success": True})
 
+
 @views.route('/routine/<int:routine_id>/validate')
 @login_required
 def validate_routine(routine_id):
@@ -175,7 +194,9 @@ def validate_routine(routine_id):
             task.offset,
             task.position,
             task.action,
-            task.duration
+            task.duration,
+            task.is_recurring,
+            task.repeat_every
         )
         for error in task_errors:
             errors.append(f'Task {task.order_index}: {error}')
