@@ -1,21 +1,70 @@
-{% extends "base.html" %} {% block title %}Home{% endblock %} {% block content
-%}
-<h1 align="center">Notes</h1>
-<ul class="list-group list-group-flush" id="notes">
-  {% for note in user.notes %}
-  <li class="list-group-item">
-    {{ note.data }}
-    <button type="button" class="close" onClick="deleteNote({{ note.id }})">
-      <span aria-hidden="true">&times;</span>
-    </button>
-  </li>
-  {% endfor %}
-</ul>
-<form method="POST">
-  <textarea name="note" id="note" class="form-control"></textarea>
-  <br />
-  <div align="center">
-    <button type="submit" class="btn btn-primary">Add Note</button>
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Your Routines</h2>
   </div>
-</form>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <h4>Create Routine</h4>
+      <form method="POST" action="{{ url_for('views.create_routine') }}">
+        <div class="mb-3">
+          <label class="form-label">Routine Name</label>
+          <input type="text" name="name" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Description</label>
+          <textarea name="description" class="form-control" rows="3"></textarea>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">From date</label>
+            <input type="date" name="start_date" class="form-control">
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">To date</label>
+            <input type="date" name="end_date" class="form-control">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Create Routine</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <h4>Saved Routines</h4>
+
+      {% if routines %}
+        <div class="list-group">
+          {% for routine in routines %}
+            <a href="{{ url_for('views.routine_detail', routine_id=routine.id) }}"
+               class="list-group-item list-group-item-action">
+              <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">{{ routine.name }}</h5>
+                <small>{{ routine.tasks|length }} tasks</small>
+              </div>
+              <p class="mb-1">{{ routine.description or 'No description provided.' }}</p>
+              <small>
+                {% if routine.start_date or routine.end_date %}
+                  {{ routine.start_date or 'Not set' }} to {{ routine.end_date or 'Not set' }}
+                {% else %}
+                  No date range set
+                {% endif %}
+              </small>
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="mb-0">No routines yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
 {% endblock %}

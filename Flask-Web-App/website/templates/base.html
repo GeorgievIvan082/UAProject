@@ -87,5 +87,66 @@
   }
 </script>
 {% endblock %}
+<script>
+  function deleteTask(taskId) {
+    fetch("/delete-task", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ taskId: taskId })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        window.location.reload();
+      } else {
+        alert("Could not delete task.");
+      }
+    })
+    .catch(() => {
+      alert("Error deleting task.");
+    });
+  }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const taskTableBody = document.getElementById("task-table-body");
+
+    if (taskTableBody) {
+      Sortable.create(taskTableBody, {
+        animation: 150,
+        handle: ".drag-handle",
+        ghostClass: "table-warning",
+        onEnd: function () {
+          const routineId = taskTableBody.dataset.routineId;
+          const taskIds = Array.from(taskTableBody.querySelectorAll("tr"))
+            .map(row => parseInt(row.dataset.taskId, 10));
+
+          fetch(`/routine/${routineId}/reorder-tasks`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ taskIds: taskIds })
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              window.location.reload();
+            } else {
+              alert("Could not save task order.");
+            }
+          })
+          .catch(() => {
+            alert("Error saving task order.");
+          });
+        }
+      });
+    }
+  });
+</script>
   </body>
 </html>
